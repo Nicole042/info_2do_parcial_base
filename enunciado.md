@@ -1,6 +1,6 @@
 # Segundo Parcial — Match-3 (Infografía, I/2026)
 
-**Modalidad:** proyecto para casa, individual. **Plazo:** 1 a 2 semanas (la fecha exacta se publica en Moodle).
+**Modalidad:** proyecto para casa, individual. **Plazo y fecha de entrega:** se publican en Moodle.
 **Motor:** Godot 4.6. **Entrega:** URL de tu repositorio (ver *Entrega* al final).
 
 ---
