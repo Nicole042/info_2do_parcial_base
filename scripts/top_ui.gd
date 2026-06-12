@@ -17,5 +17,4 @@ func update_score(nuevo_puntaje: int) -> void:
 
 func update_counter(restantes: int) -> void:
 	current_count = restantes
-	# TODO (PARCIAL · B2): refleja current_count en counter_label.text.
-	pass
+	counter_label.text = "Moves: " + str(current_count)
