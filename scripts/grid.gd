@@ -290,18 +290,21 @@ func destroy_matched():
 
 	move_checked = true
 	
+	if should_consume_move:
+		moves_left -= 1
+		counter_changed.emit(moves_left)
+		should_consume_move = false
+	
 	if was_matched:
 		match_sound.play()
-		
-		if should_consume_move:
-			moves_left -= 1
-			counter_changed.emit(moves_left)
-			should_consume_move = false
-		
 		collapse_timer.start()
 	else:
 		invalid_sound.play()
-		should_consume_move = false
+		
+		if moves_left <= 0:
+			game_over(false)
+			return
+		
 		swap_back()
 
 func collapse_columns():
