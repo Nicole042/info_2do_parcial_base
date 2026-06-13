@@ -421,7 +421,7 @@ func game_over(gano: bool):
 	
 	final_label.modulate = Color.LIME_GREEN
 	final_label.position = Vector2(170, 280)
-	final_label.add_theme_font_size_override("font_size", 44)
+	final_label.add_theme_font_size_override("font_size", 39)
 
 # TODO (PARCIAL · M2): funciones sugeridas para detectar el bloqueo del tablero.
 # func hay_jugadas_validas() -> bool:
