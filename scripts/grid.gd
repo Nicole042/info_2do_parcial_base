@@ -364,6 +364,9 @@ func check_after_refill():
 		game_over(false)
 		return
 
+	if not hay_jugadas_validas():
+		rebarajar()
+
 	state = MOVE
 	move_checked = false
 
@@ -426,3 +429,67 @@ func game_over(gano: bool):
 # TODO (PARCIAL · M2): funciones sugeridas para detectar el bloqueo del tablero.
 # func hay_jugadas_validas() -> bool:
 # func rebarajar() -> void:
+func hay_match_en_tablero() -> bool:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				var color = all_pieces[i][j].color
+				
+				if i < width - 2:
+					if all_pieces[i + 1][j] != null and all_pieces[i + 2][j] != null:
+						if all_pieces[i + 1][j].color == color and all_pieces[i + 2][j].color == color:
+							return true
+				
+				if j < height - 2:
+					if all_pieces[i][j + 1] != null and all_pieces[i][j + 2] != null:
+						if all_pieces[i][j + 1].color == color and all_pieces[i][j + 2].color == color:
+							return true
+	
+	return false
+func hay_jugadas_validas() -> bool:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				
+				if i < width - 1 and all_pieces[i + 1][j] != null:
+					var temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i + 1][j]
+					all_pieces[i + 1][j] = temp
+					
+					var hay_match = hay_match_en_tablero()
+					
+					temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i + 1][j]
+					all_pieces[i + 1][j] = temp
+					
+					if hay_match:
+						return true
+				
+				if j < height - 1 and all_pieces[i][j + 1] != null:
+					var temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i][j + 1]
+					all_pieces[i][j + 1] = temp
+					
+					var hay_match = hay_match_en_tablero()
+					
+					temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i][j + 1]
+					all_pieces[i][j + 1] = temp
+					
+					if hay_match:
+						return true
+	
+	return false
+func rebarajar():
+	print("No hay jugadas validas. Rebarajando tablero...")
+	
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				all_pieces[i][j].queue_free()
+				all_pieces[i][j] = null
+	
+	spawn_pieces()
+	
+	if not hay_jugadas_validas():
+		rebarajar()
