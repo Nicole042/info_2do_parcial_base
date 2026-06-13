@@ -42,6 +42,10 @@ var is_controlling = false
 @onready var collapse_timer: Timer = $collapse_timer
 @onready var refill_timer: Timer = $refill_timer
 
+var swap_sound = AudioStreamPlayer.new()
+var match_sound = AudioStreamPlayer.new()
+var invalid_sound = AudioStreamPlayer.new()
+
 # === PUNTAJE (B1) y CONTADOR (B2) ===
 # Contrato sugerido para comunicarte con el HUD (top_ui.gd). No es obligatorio usar
 # señales, pero ayuda a mantener la UI desacoplada de la lógica del tablero:
@@ -65,6 +69,13 @@ func _ready():
 	randomize()
 	all_pieces = make_2d_array()
 	spawn_pieces()
+	add_child(swap_sound)
+	add_child(match_sound)
+	add_child(invalid_sound)
+
+	swap_sound.stream = load("res://assets/Match 3 Sounds/Sounds/1.ogg")
+	match_sound.stream = load("res://assets/Match 3 Sounds/Sounds/3.ogg")
+	invalid_sound.stream = load("res://assets/Match 3 Sounds/Sounds/7.ogg")
 	var top_ui = get_parent().get_node("top_ui")
 	score_changed.connect(top_ui.update_score)
 	counter_changed.connect(top_ui.update_counter)
@@ -151,6 +162,7 @@ func swap_pieces(column, row, direction: Vector2):
 	#other_piece.position = grid_to_pixel(column, row)
 	first_piece.move(grid_to_pixel(column + direction.x, row + direction.y))
 	other_piece.move(grid_to_pixel(column, row))
+	swap_sound.play()
 	# TODO (PARCIAL · M3): si alguna de las piezas intercambiadas es especial,
 	# actívala aquí (su efecto reemplaza a la búsqueda normal de combinaciones).
 	# TODO (PARCIAL · B2): un intercambio válido consume una jugada. Decide dónde
@@ -247,13 +259,15 @@ func destroy_matched():
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
 
-	move_checked = true
-	if was_matched:
-		moves_left -= 1
-		counter_changed.emit(moves_left)
-		collapse_timer.start()
-	else:
-		swap_back()
+		move_checked = true
+		if was_matched:
+			match_sound.play()
+			moves_left -= 1
+			counter_changed.emit(moves_left)
+			collapse_timer.start()
+		else:
+			invalid_sound.play()
+			swap_back()
 
 func collapse_columns():
 	for i in width:
