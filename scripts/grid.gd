@@ -198,7 +198,7 @@ func touch_difference(grid_1, grid_2):
 		elif difference.y < 0:
 			swap_pieces(grid_1.x, grid_1.y, Vector2(0, -1))
 
-func _process(delta):
+func _process(_delta):
 	if game_is_finished:
 		if Input.is_key_pressed(KEY_R):
 			get_tree().reload_current_scene()
