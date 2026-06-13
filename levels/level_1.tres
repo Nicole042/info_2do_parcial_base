@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="LevelConfig" format=3 uid="uid://btqe8yvmy0yny"]
+
+[ext_resource type="Script" uid="uid://blhm7y1ddy3c6" path="res://scripts/level_config.gd" id="1_t4ux6"]
+
+[resource]
+script = ExtResource("1_t4ux6")
+objetivo_valor = 300
+metadata/_custom_type_script = "uid://blhm7y1ddy3c6"

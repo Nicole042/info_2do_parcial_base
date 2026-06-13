@@ -63,12 +63,21 @@ var moves_left = 20
 var points_per_piece = 10
 var target_score = 300
 var game_is_finished = false
+var current_level_index = 0
+var current_level: LevelConfig
+
+var levels = [
+	preload("res://levels/level_1.tres"),
+	preload("res://levels/level_2.tres"),
+	preload("res://levels/level_3.tres")
+]
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	state = MOVE
 	randomize()
 	all_pieces = make_2d_array()
+	load_level(current_level_index)
 	spawn_pieces()
 	add_child(swap_sound)
 	add_child(match_sound)
@@ -82,6 +91,18 @@ func _ready():
 	counter_changed.connect(top_ui.update_counter)
 	score_changed.emit(score)
 	counter_changed.emit(moves_left)
+	
+func load_level(index: int):
+	current_level = levels[index]
+
+	target_score = current_level.objetivo_valor
+	moves_left = current_level.limite_movimientos
+
+	score = 0
+	
+	print("Nivel cargado: ", current_level.nombre)
+	print("Meta: ", target_score)
+	print("Movimientos: ", moves_left)
 
 func make_2d_array():
 	var array = []
