@@ -30,6 +30,7 @@ var piece_two = null
 var last_place = Vector2.ZERO
 var last_direction = Vector2.ZERO
 var move_checked = false
+var should_consume_move = false
 
 # touch variables
 var first_touch = Vector2.ZERO
@@ -74,7 +75,7 @@ func _ready():
 	add_child(invalid_sound)
 
 	swap_sound.stream = load("res://assets/Match 3 Sounds/Sounds/1.ogg")
-	match_sound.stream = load("res://assets/Match 3 Sounds/Sounds/3.ogg")
+	match_sound.stream = load("res://assets/Match 3 Sounds/Sounds/4.ogg")
 	invalid_sound.stream = load("res://assets/Match 3 Sounds/Sounds/7.ogg")
 	var top_ui = get_parent().get_node("top_ui")
 	score_changed.connect(top_ui.update_score)
@@ -168,6 +169,7 @@ func swap_pieces(column, row, direction: Vector2):
 	# TODO (PARCIAL · B2): un intercambio válido consume una jugada. Decide dónde
 	# descontar el contador: aquí, o en destroy_matched() solo si hubo combinación.
 	if not move_checked:
+		should_consume_move = true
 		find_matches()
 
 func store_info(first_piece, other_piece, place, direction):
@@ -248,26 +250,31 @@ func find_matches():
 	
 func destroy_matched():
 	var was_matched = false
+	
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] != null and all_pieces[i][j].matched:
 				was_matched = true
-				# TODO (PARCIAL · B1): suma puntaje por cada pieza destruida (o por
-				# combinación) y emite score_changed para actualizar el HUD.
 				score += points_per_piece
 				score_changed.emit(score)
 				all_pieces[i][j].queue_free()
 				all_pieces[i][j] = null
 
-		move_checked = true
-		if was_matched:
-			match_sound.play()
+	move_checked = true
+	
+	if was_matched:
+		match_sound.play()
+		
+		if should_consume_move:
 			moves_left -= 1
 			counter_changed.emit(moves_left)
-			collapse_timer.start()
-		else:
-			invalid_sound.play()
-			swap_back()
+			should_consume_move = false
+		
+		collapse_timer.start()
+	else:
+		invalid_sound.play()
+		should_consume_move = false
+		swap_back()
 
 func collapse_columns():
 	for i in width:
