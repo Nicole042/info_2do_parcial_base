@@ -51,10 +51,13 @@ var is_controlling = false
 # TODO (PARCIAL · B1/B2): declara aquí el puntaje y el contador (y sus señales, si las usas).
 signal score_changed(nuevo_puntaje: int)
 signal counter_changed(restantes: int)
+signal game_finished(gano: bool)
 
 var score = 0
 var moves_left = 20
 var points_per_piece = 10
+var target_score = 300
+var game_is_finished = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -182,6 +185,11 @@ func touch_difference(grid_1, grid_2):
 			swap_pieces(grid_1.x, grid_1.y, Vector2(0, -1))
 
 func _process(delta):
+	if game_is_finished:
+		if Input.is_key_pressed(KEY_R):
+			get_tree().reload_current_scene()
+		return
+		
 	if state == MOVE:
 		touch_input()
 
@@ -296,6 +304,12 @@ func check_after_refill():
 	# (puntaje meta, piezas recolectadas, etc.) y dispara victoria o derrota.
 	# TODO (PARCIAL · M2): comprueba si todavía existe alguna jugada válida; si no,
 	# rebaraja el tablero hasta que haya al menos una.
+	if score >= target_score:
+		game_over(true)
+		return
+	if moves_left <= 0:
+		game_over(false)
+		return
 	state = MOVE
 	move_checked = false
 
@@ -308,12 +322,25 @@ func _on_collapse_timer_timeout():
 func _on_refill_timer_timeout():
 	refill_columns()
 	
-func game_over():
+func game_over(gano: bool):
 	state = WAIT
 	# TODO (PARCIAL · B3): muestra la pantalla final (victoria o derrota), detén la
 	# entrada del jugador y ofrece reiniciar la partida. Emite game_finished(gano).
 	# TODO (PARCIAL · M4): guarda el progreso (nivel alcanzado) y el mejor puntaje
 	# en disco (user://) para conservarlos entre sesiones.
+	game_is_finished = true
+	game_finished.emit(gano)
+	
+	var final_label = Label.new()
+	add_child(final_label)
+	
+	if gano:
+		final_label.text = "YOU WIN!\nScore: " + str(score) + "\nPress R to restart"
+	else:
+		final_label.text = "GAME OVER\nScore: " + str(score) + "\nPress R to restart"
+	
+	final_label.position = Vector2(120, 300)
+	final_label.add_theme_font_size_override("font_size", 40)
 
 # TODO (PARCIAL · M2): funciones sugeridas para detectar el bloqueo del tablero.
 # func hay_jugadas_validas() -> bool:
