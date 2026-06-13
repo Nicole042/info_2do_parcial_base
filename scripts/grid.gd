@@ -21,6 +21,7 @@ var possible_pieces = [
 	preload("res://scenes/yellow_piece.tscn"),
 	preload("res://scenes/orange_piece.tscn"),
 ]
+
 # current pieces in scene
 var all_pieces = []
 
@@ -63,6 +64,7 @@ var moves_left = 20
 var points_per_piece = 10
 var target_score = 300
 var game_is_finished = false
+
 var current_level_index = 0
 var current_level: LevelConfig
 
@@ -79,6 +81,7 @@ func _ready():
 	all_pieces = make_2d_array()
 	load_level(current_level_index)
 	spawn_pieces()
+	
 	add_child(swap_sound)
 	add_child(match_sound)
 	add_child(invalid_sound)
@@ -86,12 +89,13 @@ func _ready():
 	swap_sound.stream = load("res://assets/Match 3 Sounds/Sounds/1.ogg")
 	match_sound.stream = load("res://assets/Match 3 Sounds/Sounds/4.ogg")
 	invalid_sound.stream = load("res://assets/Match 3 Sounds/Sounds/7.ogg")
+	
 	var top_ui = get_parent().get_node("top_ui")
 	score_changed.connect(top_ui.update_score)
 	counter_changed.connect(top_ui.update_counter)
 	score_changed.emit(score)
 	counter_changed.emit(moves_left)
-	
+
 func load_level(index: int):
 	current_level = levels[index]
 
@@ -151,7 +155,7 @@ func match_at(i, j, color):
 			if all_pieces[i - 1][j].color == color and all_pieces[i - 2][j].color == color:
 				return true
 	# check down
-	if j> 1:
+	if j > 1:
 		if all_pieces[i][j - 1] != null and all_pieces[i][j - 2] != null:
 			if all_pieces[i][j - 1].color == color and all_pieces[i][j - 2].color == color:
 				return true
@@ -222,7 +226,10 @@ func touch_difference(grid_1, grid_2):
 func _process(_delta):
 	if game_is_finished:
 		if Input.is_key_pressed(KEY_R):
-			get_tree().reload_current_scene()
+			if score >= target_score:
+				go_to_next_level()
+			else:
+				get_tree().reload_current_scene()
 		return
 		
 	if state == MOVE:
@@ -240,7 +247,7 @@ func find_matches():
 				var current_color = all_pieces[i][j].color
 				# detect horizontal matches
 				if (
-					i > 0 and i < width -1 
+					i > 0 and i < width - 1 
 					and 
 					all_pieces[i - 1][j] != null and all_pieces[i + 1][j]
 					and 
@@ -254,7 +261,7 @@ func find_matches():
 					all_pieces[i + 1][j].dim()
 				# detect vertical matches
 				if (
-					j > 0 and j < height -1 
+					j > 0 and j < height - 1 
 					and 
 					all_pieces[i][j - 1] != null and all_pieces[i][j + 1]
 					and 
@@ -311,7 +318,6 @@ func collapse_columns():
 	refill_timer.start()
 
 func refill_columns():
-	
 	for i in width:
 		for j in height:
 			if all_pieces[i][j] == null:
@@ -341,6 +347,7 @@ func check_after_refill():
 				find_matches()
 				destroy_timer.start()
 				return
+
 	# El tablero quedó estable: no hay más combinaciones en cascada.
 	# TODO (PARCIAL · M1): verifica si se cumplió o falló el objetivo del nivel
 	# (puntaje meta, piezas recolectadas, etc.) y dispara victoria o derrota.
@@ -349,11 +356,37 @@ func check_after_refill():
 	if score >= target_score:
 		game_over(true)
 		return
+
 	if moves_left <= 0:
 		game_over(false)
 		return
+
 	state = MOVE
 	move_checked = false
+
+func go_to_next_level():
+	current_level_index += 1
+	
+	if current_level_index >= levels.size():
+		current_level_index = 0
+	
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				all_pieces[i][j].queue_free()
+				all_pieces[i][j] = null
+	
+	score = 0
+	game_is_finished = false
+	move_checked = false
+	should_consume_move = false
+	
+	load_level(current_level_index)
+	score_changed.emit(score)
+	counter_changed.emit(moves_left)
+	
+	spawn_pieces()
+	state = MOVE
 
 func _on_destroy_timer_timeout():
 	destroy_matched()
@@ -379,9 +412,9 @@ func game_over(gano: bool):
 	final_label.add_theme_constant_override("outline_size", 4)
 	
 	if gano:
-		final_label.text = "YOU WIN!\nScore: " + str(score) + "\nPress R to restart"
+		final_label.text = current_level.nombre + " COMPLETE!\nScore: " + str(score) + "\nPress R for next level"
 	else:
-		final_label.text = "GAME OVER\nScore: " + str(score) + "\nPress R to restart"
+		final_label.text = "GAME OVER\nScore: " + str(score) + "\nPress R to retry"
 	
 	final_label.modulate = Color.LIME_GREEN
 	final_label.position = Vector2(170, 280)
