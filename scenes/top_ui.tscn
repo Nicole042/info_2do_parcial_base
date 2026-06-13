@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bt33j5dwxano3"]
+[gd_scene format=3 uid="uid://bt33j5dwxano3"]
 
 [ext_resource type="Texture2D" uid="uid://bacqucona7fm3" path="res://assets/top_ui.png" id="1_j7odh"]
 [ext_resource type="Script" uid="uid://pvllt7hbni2e" path="res://scripts/top_ui.gd" id="2_0qkha"]
@@ -12,13 +12,13 @@ font_size = 24
 font = ExtResource("2_pei76")
 font_size = 60
 
-[node name="top_ui" type="TextureRect"]
+[node name="top_ui" type="TextureRect" unique_id=2050181309]
 offset_right = 576.0
 offset_bottom = 192.0
 texture = ExtResource("1_j7odh")
 script = ExtResource("2_0qkha")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=160195632]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,28 +30,30 @@ offset_bottom = -49.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=2028837028]
 layout_mode = 2
 theme_override_constants/separation = 32
 alignment = 1
 
-[node name="score_label" type="Label" parent="MarginContainer/HBoxContainer"]
+[node name="score_label" type="Label" parent="MarginContainer/HBoxContainer" unique_id=728835297]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 5
+theme_override_font_sizes/font_size = 16
 text = "000"
 label_settings = SubResource("LabelSettings_yrpvj")
 horizontal_alignment = 1
 
-[node name="counter_label" type="Label" parent="MarginContainer/HBoxContainer"]
+[node name="counter_label" type="Label" parent="MarginContainer/HBoxContainer" unique_id=537973467]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 5
+theme_override_font_sizes/font_size = 8
 text = "00"
 label_settings = SubResource("LabelSettings_8bjlm")
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer" unique_id=2057557695]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 5

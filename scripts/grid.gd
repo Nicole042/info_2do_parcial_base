@@ -333,14 +333,17 @@ func game_over(gano: bool):
 	
 	var final_label = Label.new()
 	add_child(final_label)
+	final_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	final_label.add_theme_constant_override("outline_size", 4)
 	
 	if gano:
 		final_label.text = "YOU WIN!\nScore: " + str(score) + "\nPress R to restart"
 	else:
 		final_label.text = "GAME OVER\nScore: " + str(score) + "\nPress R to restart"
 	
-	final_label.position = Vector2(120, 300)
-	final_label.add_theme_font_size_override("font_size", 40)
+	final_label.modulate = Color.LIME_GREEN
+	final_label.position = Vector2(170, 280)
+	final_label.add_theme_font_size_override("font_size", 44)
 
 # TODO (PARCIAL · M2): funciones sugeridas para detectar el bloqueo del tablero.
 # func hay_jugadas_validas() -> bool:
