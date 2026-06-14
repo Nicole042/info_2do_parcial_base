@@ -16,3 +16,14 @@ func move(target):
 
 func dim():
 	$Sprite2D.modulate = Color(1, 1, 1, 0.5)
+
+#m3 
+var special_type: String = ""
+
+func activate_special(grid) -> void:
+	if special_type == "row":
+		grid.clear_row(int(round((position.y - grid.y_start) / -grid.offset)))
+	elif special_type == "column":
+		grid.clear_column(int(round((position.x - grid.x_start) / grid.offset)))
+	elif special_type == "rainbow":
+		pass

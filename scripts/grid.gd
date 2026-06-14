@@ -195,7 +195,8 @@ func swap_pieces(column, row, direction: Vector2):
 	# descontar el contador: aquí, o en destroy_matched() solo si hubo combinación.
 	if not move_checked:
 		should_consume_move = true
-		find_matches()
+		if not m3_activate_swap(column, row, direction):
+			m3_find_matches()
 
 func store_info(first_piece, other_piece, place, direction):
 	piece_one = first_piece
@@ -297,6 +298,7 @@ func destroy_matched():
 	
 	if was_matched:
 		match_sound.play()
+		m3_spawn_pending()
 		collapse_timer.start()
 	else:
 		invalid_sound.play()
@@ -493,3 +495,132 @@ func rebarajar():
 	
 	if not hay_jugadas_validas():
 		rebarajar()
+
+
+# M3 — PIEZAS ESPECIALES
+
+var _pending_specials = []
+
+func m3_find_matches() -> void:
+	for j in height:
+		var i = 0
+		while i < width:
+			if all_pieces[i][j] == null:
+				i += 1
+				continue
+			var col = all_pieces[i][j].color
+			var len = 1
+			while i + len < width and all_pieces[i + len][j] != null and all_pieces[i + len][j].color == col:
+				len += 1
+			if len >= 3:
+				for k in len:
+					all_pieces[i + k][j].matched = true
+					all_pieces[i + k][j].dim()
+				if len == 4:
+					_pending_specials.append({"col": i + 1, "row": j, "type": "row", "color": col})
+				elif len >= 5:
+					_pending_specials.append({"col": i + 2, "row": j, "type": "rainbow", "color": col})
+			i += len
+
+	for i in width:
+		var j = 0
+		while j < height:
+			if all_pieces[i][j] == null:
+				j += 1
+				continue
+			var col = all_pieces[i][j].color
+			var len = 1
+			while j + len < height and all_pieces[i][j + len] != null and all_pieces[i][j + len].color == col:
+				len += 1
+			if len >= 3:
+				for k in len:
+					all_pieces[i][j + k].matched = true
+					all_pieces[i][j + k].dim()
+				if len == 4:
+					_pending_specials.append({"col": i, "row": j + 1, "type": "column", "color": col})
+				elif len >= 5:
+					_pending_specials.append({"col": i, "row": j + 2, "type": "rainbow", "color": col})
+			j += len
+
+	destroy_timer.start()
+
+func m3_spawn_pending() -> void:
+	for s in _pending_specials:
+		if all_pieces[s.col][s.row] == null:
+			var piece = preload("res://scenes/piece.tscn").instantiate()
+			piece.color = s.color
+			piece.special_type = s.type
+			var color_cap = s.color.capitalize()
+			add_child(piece)
+			piece.position = grid_to_pixel(s.col, s.row)
+			all_pieces[s.col][s.row] = piece
+			var spr = piece.get_node("Sprite2D")
+			if s.type == "row":
+				spr.texture = load("res://assets/pieces/" + color_cap + " Row.png")
+			elif s.type == "column":
+				spr.texture = load("res://assets/pieces/" + color_cap + " Column.png")
+			elif s.type == "rainbow":
+				spr.texture = load("res://assets/pieces/Rainbow.png")
+	_pending_specials.clear()
+
+func m3_activate_swap(column: int, row: int, direction: Vector2) -> bool:
+	var p1 = all_pieces[column][row]
+	var p2 = all_pieces[column + int(direction.x)][row + int(direction.y)]
+	if p1 == null or p2 == null:
+		return false
+	if p1.special_type == "" and p2.special_type == "":
+		return false
+	var c2 = column + int(direction.x)
+	var r2 = row + int(direction.y)
+	if p1.special_type != "" and p2.special_type != "":
+		m3_combo(p1, p2, column, row, c2, r2)
+	elif p1.special_type == "rainbow":
+		clear_color(p2.color)
+		p1.matched = true
+	elif p2.special_type == "rainbow":
+		clear_color(p1.color)
+		p2.matched = true
+	elif p1.special_type != "":
+		p1.activate_special(self)
+		p1.matched = true
+	else:
+		p2.activate_special(self)
+		p2.matched = true
+	destroy_timer.start()
+	return true
+
+func m3_combo(p1, p2, c1, r1, c2, r2) -> void:
+	if p1.special_type == "rainbow":
+		clear_color(p2.color)
+	elif p2.special_type == "rainbow":
+		clear_color(p1.color)
+	elif (p1.special_type == "row" and p2.special_type == "column") or (p1.special_type == "column" and p2.special_type == "row"):
+		clear_row(r1)
+		clear_column(c1)
+	elif p1.special_type == "row" and p2.special_type == "row":
+		clear_row(r1)
+		clear_row(r2)
+	elif p1.special_type == "column" and p2.special_type == "column":
+		clear_column(c1)
+		clear_column(c2)
+	all_pieces[c1][r1].matched = true
+	all_pieces[c2][r2].matched = true
+
+func clear_row(row: int) -> void:
+	for i in width:
+		if all_pieces[i][row] != null:
+			all_pieces[i][row].matched = true
+			all_pieces[i][row].dim()
+
+func clear_column(col: int) -> void:
+	for j in height:
+		if all_pieces[col][j] != null:
+			all_pieces[col][j].matched = true
+			all_pieces[col][j].dim()
+
+func clear_color(target_color: String) -> void:
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null and all_pieces[i][j].color == target_color:
+				all_pieces[i][j].matched = true
+				all_pieces[i][j].dim()
