@@ -93,6 +93,7 @@ func _ready():
 	var top_ui = get_parent().get_node("top_ui")
 	score_changed.connect(top_ui.update_score)
 	counter_changed.connect(top_ui.update_counter)
+	m4_load_progress()
 	score_changed.emit(score)
 	counter_changed.emit(moves_left)
 
@@ -373,6 +374,9 @@ func check_after_refill():
 	move_checked = false
 
 func go_to_next_level():
+	for child in get_parent().get_children():
+		if child is Label:
+			child.queue_free()
 	current_level_index += 1
 	
 	if current_level_index >= levels.size():
@@ -413,16 +417,21 @@ func game_over(gano: bool):
 	# en disco (user://) para conservarlos entre sesiones.
 	game_is_finished = true
 	game_finished.emit(gano)
+	m4_save_progress()
 	
+	for child in get_children():
+		if child is Label:
+			child.queue_free()
 	var final_label = Label.new()
-	add_child(final_label)
+	get_parent().add_child(final_label)
 	final_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	final_label.add_theme_constant_override("outline_size", 4)
 	
+	#m4
 	if gano:
-		final_label.text = current_level.nombre + " COMPLETE!\nScore: " + str(score) + "\nPress R for next level"
+		final_label.text = current_level.nombre + " COMPLETE!\nScore: " + str(score) + "\nBest: " + str(max(score, best_score)) + "\nPress R for next level"
 	else:
-		final_label.text = "GAME OVER\nScore: " + str(score) + "\nPress R to retry"
+		final_label.text = "GAME OVER\nScore: " + str(score) + "\nBest: " + str(max(score, best_score)) + "\nPress R to retry"
 	
 	final_label.modulate = Color.LIME_GREEN
 	final_label.position = Vector2(170, 280)
@@ -581,10 +590,10 @@ func m3_activate_swap(column: int, row: int, direction: Vector2) -> bool:
 		clear_color(p1.color)
 		p2.matched = true
 	elif p1.special_type != "":
-		p1.activate_special(self)
+		p1.activate_special(self, column, row)
 		p1.matched = true
 	else:
-		p2.activate_special(self)
+		p2.activate_special(self, c2, r2)
 		p2.matched = true
 	destroy_timer.start()
 	return true
@@ -624,3 +633,30 @@ func clear_color(target_color: String) -> void:
 			if all_pieces[i][j] != null and all_pieces[i][j].color == target_color:
 				all_pieces[i][j].matched = true
 				all_pieces[i][j].dim()
+
+
+# M4 
+
+var best_score = 0
+
+func m4_save_progress() -> void:
+	var data = {
+		"nivel": current_level_index,
+		"mejor_puntaje": max(score, best_score)
+	}
+	var file = FileAccess.open("user://progress.json", FileAccess.WRITE)
+	if file:
+		file.store_string(JSON.stringify(data))
+		file.close()
+
+func m4_load_progress() -> void:
+	if not FileAccess.file_exists("user://progress.json"):
+		return
+	var file = FileAccess.open("user://progress.json", FileAccess.READ)
+	if file:
+		var data = JSON.parse_string(file.get_as_text())
+		file.close()
+		if data:
+			best_score = data.get("mejor_puntaje", 0)
+			current_level_index = data.get("nivel", 0)
+			load_level(current_level_index)

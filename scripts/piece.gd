@@ -20,10 +20,8 @@ func dim():
 #m3 
 var special_type: String = ""
 
-func activate_special(grid) -> void:
+func activate_special(grid, col: int, row: int) -> void:
 	if special_type == "row":
-		grid.clear_row(int(round((position.y - grid.y_start) / -grid.offset)))
+		grid.clear_row(row)
 	elif special_type == "column":
-		grid.clear_column(int(round((position.x - grid.x_start) / grid.offset)))
-	elif special_type == "rainbow":
-		pass
+		grid.clear_column(col)
