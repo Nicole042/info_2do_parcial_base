@@ -20,6 +20,8 @@ offset_right = 576.0
 offset_bottom = 1020.0
 texture = ExtResource("3_jy0d4")
 
+[node name="Camera2D" type="Camera2D" parent="." unique_id=907835111]
+
 [node name="grid" type="Node2D" parent="." unique_id=1662575022]
 script = ExtResource("4_4jr62")
 width = 8

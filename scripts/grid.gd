@@ -96,6 +96,8 @@ func _ready():
 	m4_load_progress()
 	score_changed.emit(score)
 	counter_changed.emit(moves_left)
+	
+	_ready_camera()
 
 func load_level(index: int):
 	current_level = levels[index]
@@ -248,6 +250,7 @@ func _process(_delta):
 					hint_piece.modulate = Color.WHITE
 				else:
 					hint_piece.modulate = Color(2, 2, 2, 1)
+		_process_camera(_delta)
 
 var hint_timer = 0.0
 var hint_piece = null
@@ -340,6 +343,7 @@ func destroy_matched():
 	
 	if was_matched:
 		match_sound.play()
+		shake_camera(5.0, 0.2)
 		m3_spawn_pending()
 		collapse_timer.start()
 	else:
@@ -701,3 +705,29 @@ func m4_load_progress() -> void:
 			best_score = data.get("mejor_puntaje", 0)
 			current_level_index = data.get("nivel", 0)
 			load_level(current_level_index)
+
+
+
+# bonus sacudida de camara
+
+var shake_timer = 0.0
+var shake_intensity = 0.0
+var camera: Camera2D
+
+func _ready_camera() -> void:
+	camera = get_parent().get_node("Camera2D")
+	camera.position = Vector2(288, 512)
+
+func shake_camera(intensity: float, duration: float) -> void:
+	shake_intensity = intensity
+	shake_timer = duration
+
+func _process_camera(delta: float) -> void:
+	if shake_timer > 0:
+		shake_timer -= delta
+		camera.offset = Vector2(
+			randf_range(-shake_intensity, shake_intensity),
+			randf_range(-shake_intensity, shake_intensity)
+		)
+	else:
+		camera.offset = Vector2.ZERO
