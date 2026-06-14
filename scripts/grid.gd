@@ -190,6 +190,7 @@ func swap_pieces(column, row, direction: Vector2):
 	first_piece.move(grid_to_pixel(column + direction.x, row + direction.y))
 	other_piece.move(grid_to_pixel(column, row))
 	swap_sound.play()
+	resetear_pista()
 	# TODO (PARCIAL · M3): si alguna de las piezas intercambiadas es especial,
 	# actívala aquí (su efecto reemplaza a la búsqueda normal de combinaciones).
 	# TODO (PARCIAL · B2): un intercambio válido consume una jugada. Decide dónde
@@ -236,6 +237,46 @@ func _process(_delta):
 		
 	if state == MOVE:
 		touch_input()
+		hint_timer += _delta
+		if hint_timer >= 3.0:
+			mostrar_pista()
+		if hint_piece != null and is_instance_valid(hint_piece):
+			hint_blink += _delta
+			if hint_blink >= 0.3:
+				hint_blink = 0.0
+				if hint_piece.modulate == Color(2, 2, 2, 1):
+					hint_piece.modulate = Color.WHITE
+				else:
+					hint_piece.modulate = Color(2, 2, 2, 1)
+
+var hint_timer = 0.0
+var hint_piece = null
+var hint_blink = 0.0
+
+func resetear_pista() -> void:
+	if hint_piece != null and is_instance_valid(hint_piece):
+		hint_piece.modulate = Color.WHITE
+		hint_piece = null
+	hint_timer = 0.0
+
+func mostrar_pista() -> void:
+	print("buscando pista ..")
+	resetear_pista()
+	for i in width:
+		for j in height:
+			if all_pieces[i][j] != null:
+				if i < width - 1 and all_pieces[i + 1][j] != null:
+					var temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i + 1][j]
+					all_pieces[i + 1][j] = temp
+					var hay = hay_match_en_tablero()
+					temp = all_pieces[i][j]
+					all_pieces[i][j] = all_pieces[i + 1][j]
+					all_pieces[i + 1][j] = temp
+					if hay:
+						hint_piece = all_pieces[i][j]
+						hint_piece.modulate = Color(2, 2, 2, 1)
+						return
 
 func find_matches():
 	# TODO (PARCIAL · M3): aquí es donde se decide qué piezas forman cada combinación.
